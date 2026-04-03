@@ -69,7 +69,7 @@ async function login({ email, password }) {
     const token = data.session.access_token
 
     // ✅ Step 2: Get full user (WITH ROLE) from backend
-    const res = await api.get('/api/auth/me', {
+    const res = await api.get('/auth/me', {
       headers: {
         Authorization: `Bearer ${token}`
       }
