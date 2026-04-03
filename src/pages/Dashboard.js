@@ -217,3 +217,119 @@ export default function Dashboard() {
     </div>
   )
 }
+const styles = {
+  page: {
+    minHeight: '100vh',
+    background: '#0f0f13',
+    color: '#fff',
+    fontFamily: 'sans-serif'
+  },
+
+  topbar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '16px',
+    borderBottom: '1px solid #1e293b'
+  },
+
+  topbarLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10
+  },
+
+  logo: { fontSize: 20 },
+
+  brandName: {
+    fontWeight: 'bold'
+  },
+
+  logoutBtn: {
+    background: '#1e293b',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 12px',
+    cursor: 'pointer'
+  },
+
+  content: {
+    padding: 20
+  },
+
+  hero: {
+    display: 'flex',
+    gap: 20,
+    alignItems: 'center'
+  },
+
+  avatarCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: '50%',
+    background: '#6366f1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+
+  welcome: { margin: 0 },
+
+  welcomeSub: { color: '#aaa' },
+
+  roleBadge: {
+    marginLeft: 'auto'
+  },
+
+  mentorBadge: { color: '#6366f1' },
+  studentBadge: { color: '#22c55e' },
+
+  createBtn: {
+    marginTop: 20,
+    padding: 10,
+    background: '#6366f1',
+    border: 'none',
+    color: '#fff'
+  },
+
+  input: {
+    padding: 10,
+    marginTop: 10,
+    width: '100%'
+  },
+
+  submitBtn: {
+    marginTop: 10,
+    padding: 10,
+    background: '#6366f1',
+    border: 'none',
+    color: '#fff'
+  },
+
+  cancelBtn: {
+    marginTop: 10,
+    padding: 10
+  },
+
+  sessionList: {
+    marginTop: 20
+  },
+
+  sessionCard: {
+    padding: 10,
+    border: '1px solid #1e293b',
+    marginBottom: 10
+  },
+
+  sectionTitle: {
+    marginTop: 20
+  },
+
+  emptyText: {
+    color: '#aaa'
+  },
+
+  joinForm: {
+    display: 'flex',
+    gap: 10
+  }
+}
