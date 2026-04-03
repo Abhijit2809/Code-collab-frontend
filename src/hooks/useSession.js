@@ -1,5 +1,3 @@
-// src/hooks/useSession.js
-
 import { useState } from 'react'
 import api from '../utils/api'
 
@@ -9,11 +7,11 @@ export function useSession() {
 
   // ✅ CREATE SESSION
   async function createSession({ title, description }) {
-    setLoading(true)
-    setError('')
     try {
-      const res = await api.post('/sessions', { title, description }) // ✅ FIXED
-      return res.data
+      setLoading(true)
+      setError('')
+      const res = await api.post('/sessions', { title, description })
+      return res.data.session || res.data
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to create session'
       setError(msg)
@@ -25,10 +23,10 @@ export function useSession() {
 
   // ✅ GET MY SESSIONS
   async function getMySessions() {
-    setLoading(true)
-    setError('')
     try {
-      const res = await api.get('/sessions/mine') // ✅ FIXED
+      setLoading(true)
+      setError('')
+      const res = await api.get('/sessions/mine')
       return res.data.sessions
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to fetch sessions'
@@ -41,10 +39,10 @@ export function useSession() {
 
   // ✅ GET SESSION BY CODE
   async function getSessionByCode(invite_code) {
-    setLoading(true)
-    setError('')
     try {
-      const res = await api.get(`/sessions/code/${invite_code}`) // ✅ FIXED
+      setLoading(true)
+      setError('')
+      const res = await api.get(`/sessions/code/${invite_code}`)
       return res.data.session
     } catch (err) {
       const msg = err.response?.data?.error || 'Session not found'
@@ -55,13 +53,13 @@ export function useSession() {
     }
   }
 
-  // ✅ GET SESSION BY ID
+  // 🔥 FIXED (IMPORTANT)
   async function getSessionById(id) {
-    setLoading(true)
-    setError('')
     try {
-      const res = await api.get(`/sessions/by-id/${id}`) // ✅ FIXED
-      return res.data
+      setLoading(true)
+      setError('')
+      const res = await api.get(`/sessions/by-id/${id}`)
+      return res.data.session   // ✅ FIXED
     } catch (err) {
       const msg = err.response?.data?.error || 'Session not found'
       setError(msg)
@@ -73,10 +71,10 @@ export function useSession() {
 
   // ✅ JOIN SESSION
   async function joinSession(invite_code) {
-    setLoading(true)
-    setError('')
     try {
-      const res = await api.post(`/sessions/join/${invite_code}`) // ✅ FIXED
+      setLoading(true)
+      setError('')
+      const res = await api.post(`/sessions/join/${invite_code}`)
       return res.data.session
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to join session'
@@ -89,10 +87,10 @@ export function useSession() {
 
   // ✅ START SESSION
   async function startSession(session_id) {
-    setLoading(true)
-    setError('')
     try {
-      const res = await api.patch(`/sessions/${session_id}/start`) // ✅ FIXED
+      setLoading(true)
+      setError('')
+      const res = await api.patch(`/sessions/${session_id}/start`)
       return res.data.session
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to start session'
@@ -105,10 +103,10 @@ export function useSession() {
 
   // ✅ END SESSION
   async function endSession(session_id) {
-    setLoading(true)
-    setError('')
     try {
-      const res = await api.patch(`/sessions/${session_id}/end`) // ✅ FIXED
+      setLoading(true)
+      setError('')
+      const res = await api.patch(`/sessions/${session_id}/end`)
       return res.data.session
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to end session'

@@ -48,7 +48,7 @@ function SessionRoom({ sessionId }) {
 
   /* ───────── FETCH SESSION ───────── */
   useEffect(() => {
-    api.get(`/api/sessions/by-id/${sessionId}`)
+    api.get(`/sessions/by-id/${sessionId}`)
       .then(res => setSession(res.data))
       .catch((err) => {
         console.log(err)
