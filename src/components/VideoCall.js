@@ -1,6 +1,4 @@
-// src/components/VideoCall.js
-
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import { useSocket } from '../context/SocketContext'
 
 const VideoCall = ({ sessionId }) => {
@@ -11,6 +9,34 @@ const VideoCall = ({ sessionId }) => {
 
   const peerRef = useRef(null)
   const streamRef = useRef(null)
+
+  /* ───────── CREATE PEER ───────── */
+  const createPeer = useCallback((stream) => {
+    const peer = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    })
+
+    peerRef.current = peer
+
+    stream.getTracks().forEach(track => {
+      peer.addTrack(track, stream)
+    })
+
+    peer.ontrack = (e) => {
+      if (remoteRef.current) {
+        remoteRef.current.srcObject = e.streams[0]
+      }
+    }
+
+    peer.onicecandidate = (e) => {
+      if (e.candidate && socket) {
+        socket.emit('ice-candidate', {
+          sessionId,
+          candidate: e.candidate
+        })
+      }
+    }
+  }, [socket, sessionId])
 
   /* ───────── INIT MEDIA ───────── */
   useEffect(() => {
@@ -35,39 +61,11 @@ const VideoCall = ({ sessionId }) => {
     }
 
     init()
-  }, [])
-
-  /* ───────── CREATE PEER ───────── */
-  const createPeer = (stream) => {
-    const peer = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-    })
-
-    peerRef.current = peer
-
-    stream.getTracks().forEach(track => {
-      peer.addTrack(track, stream)
-    })
-
-    peer.ontrack = (e) => {
-      if (remoteRef.current) {
-        remoteRef.current.srcObject = e.streams[0]
-      }
-    }
-
-    peer.onicecandidate = (e) => {
-      if (e.candidate) {
-        socket.emit('ice-candidate', {
-          sessionId,
-          candidate: e.candidate
-        })
-      }
-    }
-  }
+  }, [createPeer])
 
   /* ───────── START CALL ───────── */
   const startCall = async () => {
-    if (!peerRef.current) return
+    if (!peerRef.current || !socket) return
 
     const offer = await peerRef.current.createOffer()
     await peerRef.current.setLocalDescription(offer)
@@ -106,9 +104,9 @@ const VideoCall = ({ sessionId }) => {
       socket.off('ice-candidate')
     }
 
-  }, [socket])
+  }, [socket, sessionId])
 
-  /* ───────── CLEANUP (VERY IMPORTANT) ───────── */
+  /* ───────── CLEANUP ───────── */
   useEffect(() => {
     return () => {
       console.log("🧹 Cleaning video call")

@@ -22,7 +22,7 @@ export const SocketProvider = ({ children, sessionId }) => {
 
     console.log("🚀 Creating socket connection...")
 
-    const newSocket = io('http://localhost:4000', {
+    const newSocket = io('https://code-collab-backend-427n.onrender.com', {
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 5,

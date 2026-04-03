@@ -37,7 +37,10 @@ function SessionRoom({ sessionId }) {
 
   const [session, setSession] = useState(null)
   const [users, setUsers] = useState([])
-  const [language, setLanguage] = useState('javascript')
+
+  /* ✅ FIXED: removed setLanguage */
+  const [language] = useState('javascript')
+
   const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
 
@@ -47,7 +50,10 @@ function SessionRoom({ sessionId }) {
   useEffect(() => {
     api.get(`/api/sessions/by-id/${sessionId}`)
       .then(res => setSession(res.data))
-      .catch(() => setError('Could not load session'))
+      .catch((err) => {
+        console.log(err)
+        setError('Could not load session')
+      })
       .finally(() => setFetching(false))
   }, [sessionId])
 
@@ -55,18 +61,15 @@ function SessionRoom({ sessionId }) {
   useEffect(() => {
     if (!socket) return
 
-    // ✅ SESSION END
     socket.on('session-ended', () => {
       alert("⏰ Session ended")
       navigate('/dashboard')
     })
 
-    // ✅ USER JOIN
     socket.on('user-joined', ({ username }) => {
       setUsers(prev => [...prev, { username }])
     })
 
-    // ✅ USER LEFT
     socket.on('user-left', ({ username }) => {
       setUsers(prev => prev.filter(u => u.username !== username))
     })
@@ -125,16 +128,19 @@ function SessionRoom({ sessionId }) {
       const updated = await startSession(sessionId)
       setSession(updated)
     } catch (err) {
+      console.log(err)
       setError(err.message)
     }
   }
 
   async function handleEnd() {
     if (!window.confirm('End this session?')) return
+
     try {
       const updated = await endSession(sessionId)
       setSession(updated)
     } catch (err) {
+      console.log(err)
       setError(err.message)
     }
   }
@@ -199,12 +205,10 @@ function SessionRoom({ sessionId }) {
         {/* SIDEBAR */}
         <div style={styles.sidebar}>
 
-          {/* VIDEO */}
           <div style={styles.videoBox}>
             <VideoCall sessionId={sessionId} />
           </div>
 
-          {/* USERS */}
           <div style={styles.users}>
             <p>👥 Users ({users.length})</p>
 
@@ -215,7 +219,6 @@ function SessionRoom({ sessionId }) {
             ))}
           </div>
 
-          {/* CHAT */}
           <div style={styles.chat}>
             <ChatPanel sessionId={sessionId} />
           </div>
