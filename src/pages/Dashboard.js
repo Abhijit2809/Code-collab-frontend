@@ -20,7 +20,6 @@ export default function Dashboard() {
 
   const isMentor = user?.role === 'mentor'
 
-  // ✅ FIXED: getMySessions added to deps
   const loadSessions = useCallback(async () => {
     if (!user) return
     try {
@@ -32,7 +31,6 @@ export default function Dashboard() {
     }
   }, [user, getMySessions])
 
-  // ✅ FIXED: loadSessions added to deps
   useEffect(() => {
     if (user && isMentor) {
       loadSessions()
@@ -92,52 +90,53 @@ export default function Dashboard() {
 
   return (
     <div style={styles.page}>
+
       {/* TOPBAR */}
       <div style={styles.topbar}>
-        <div style={styles.topbarLeft}>
-          <span style={styles.logo}>⌨</span>
-          <span style={styles.brandName}>CodeCollab</span>
-        </div>
+        <div style={styles.brand}>⌨ CodeCollab</div>
         <button onClick={handleLogout} style={styles.logoutBtn}>Sign out</button>
       </div>
 
-      <div style={styles.content}>
-        {/* HERO */}
+      <div style={styles.container}>
+
+        {/* USER HERO */}
         <div style={styles.hero}>
-          <div style={styles.avatarCircle}>
+          <div style={styles.avatar}>
             {user.full_name?.charAt(0)?.toUpperCase() || '?'}
           </div>
+
           <div>
-            <h1 style={styles.welcome}>
+            <h2 style={{ margin: 0 }}>
               Welcome, {user.full_name?.split(' ')[0]}
-            </h1>
-            <p style={styles.welcomeSub}>{user.email}</p>
+            </h2>
+            <p style={{ margin: 0, color: '#888' }}>{user.email}</p>
           </div>
-          <span style={{
+
+          <div style={{
             ...styles.roleBadge,
-            ...(isMentor ? styles.mentorBadge : styles.studentBadge)
+            ...(isMentor ? styles.mentor : styles.student)
           }}>
             {isMentor ? '👨‍🏫 Mentor' : '🎓 Student'}
-          </span>
+          </div>
         </div>
 
-        {/* MENTOR VIEW */}
+        {/* MENTOR */}
         {isMentor && (
           <>
             {newSession && (
-              <div style={styles.inviteBanner}>
+              <div style={styles.banner}>
                 <div>
-                  <p style={{ margin: 0 }}>Session created!</p>
-                  <p style={{ margin: 0 }}>
-                    <strong>Code: {newSession.invite_code}</strong>
-                  </p>
+                  <strong>Session Created</strong>
+                  <p>Code: {newSession.invite_code}</p>
                 </div>
-                <button onClick={copyLink} style={styles.copyBtn}>
-                  {copied ? '✓ Copied' : 'Copy Code'}
+
+                <button onClick={copyLink} style={styles.smallBtn}>
+                  {copied ? '✓ Copied' : 'Copy'}
                 </button>
+
                 <button
                   onClick={() => navigate(`/session/${newSession.id}`)}
-                  style={styles.copyBtn}
+                  style={styles.smallBtn}
                 >
                   Open →
                 </button>
@@ -145,82 +144,80 @@ export default function Dashboard() {
             )}
 
             {!showForm ? (
-              <button onClick={() => setShowForm(true)} style={styles.createBtn}>
-                + Create session
+              <button onClick={() => setShowForm(true)} style={styles.primaryBtn}>
+                + Create Session
               </button>
             ) : (
-              <form onSubmit={handleCreate} style={{ marginTop: 20 }}>
+              <form onSubmit={handleCreate}>
                 {formError && <p style={{ color: 'red' }}>{formError}</p>}
+
                 <input
-                  placeholder="Title"
+                  placeholder="Session Title"
                   value={form.title}
-                  onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                  onChange={e => setForm({ ...form, title: e.target.value })}
                   style={styles.input}
                 />
+
                 <textarea
-                  placeholder="Description (optional)"
+                  placeholder="Description"
                   value={form.description}
-                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
                   style={styles.input}
                 />
-                <button type="submit" style={styles.createBtn}>
+
+                <button type="submit" style={styles.primaryBtn}>
                   {loading ? 'Creating...' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  style={{ ...styles.createBtn, background: '#333', marginLeft: 10 }}
-                >
-                  Cancel
                 </button>
               </form>
             )}
 
-            <h2 style={{ marginTop: 30 }}>Your Sessions</h2>
+            <h3 style={{ marginTop: 30 }}>Your Sessions</h3>
+
             {sessions.length === 0 ? (
-              <p style={{ color: '#aaa' }}>
-                No sessions yet. Create your first one above.
-              </p>
+              <p style={{ color: '#777' }}>No sessions yet</p>
             ) : (
               sessions.map(s => (
-                <div key={s.id} style={styles.sessionCard}>
-                  <p style={{ fontWeight: 'bold', margin: 0 }}>{s.title}</p>
-                  {s.description && (
-                    <p style={{ color: '#aaa', margin: '4px 0' }}>{s.description}</p>
-                  )}
-                  <p style={{ color: '#888', margin: '4px 0' }}>
-                    Code: {s.invite_code}
-                  </p>
-                  <span style={statusStyle(s.status)}>{s.status}</span>
-                  <button
-                    onClick={() => navigate(`/session/${s.id}`)}
-                    style={{ marginLeft: 10, padding: '4px 12px', cursor: 'pointer' }}
-                  >
-                    Open →
-                  </button>
+                <div key={s.id} style={styles.card}>
+                  <h4>{s.title}</h4>
+                  <p style={{ color: '#aaa' }}>{s.description}</p>
+                  <p style={{ color: '#888' }}>Code: {s.invite_code}</p>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={statusStyle(s.status)}>{s.status}</span>
+
+                    <button
+                      onClick={() => navigate(`/session/${s.id}`)}
+                      style={styles.smallBtn}
+                    >
+                      Open →
+                    </button>
+                  </div>
                 </div>
               ))
             )}
           </>
         )}
 
-        {/* STUDENT VIEW */}
+        {/* STUDENT */}
         {!isMentor && (
           <>
-            <h2>Join a Session</h2>
-            <form onSubmit={handleJoinRedirect} style={{ marginTop: 10 }}>
+            <h3>Join Session</h3>
+
+            <form onSubmit={handleJoinRedirect}>
               <input
-                placeholder="Enter invite code"
+                placeholder="Enter code"
                 value={joinCode}
                 onChange={e => setJoinCode(e.target.value)}
                 style={styles.input}
               />
-              <button type="submit" style={styles.createBtn}>
+
+              <button type="submit" style={styles.primaryBtn}>
                 Join →
               </button>
             </form>
           </>
         )}
+
       </div>
     </div>
   )
@@ -229,117 +226,117 @@ export default function Dashboard() {
 const styles = {
   page: {
     minHeight: '100vh',
-    background: '#0f0f13',
-    color: '#fff'
+    background: '#0a0a12',
+    color: 'white'
   },
+
   topbar: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px 20px',
+    padding: 20,
     borderBottom: '1px solid #222'
   },
-  topbarLeft: {
-    display: 'flex',
-    gap: 10,
-    alignItems: 'center'
+
+  brand: {
+    fontWeight: 'bold',
+    fontSize: 18
   },
-  logo: { fontSize: 20 },
-  brandName: { fontWeight: 'bold', fontSize: 18 },
+
   logoutBtn: {
-    padding: '8px 16px',
-    background: '#333',
+    background: '#1a1a2e',
+    border: '1px solid #2a2a3e',
+    padding: '8px 14px',
     color: 'white',
-    border: 'none',
-    borderRadius: 6,
-    cursor: 'pointer'
+    borderRadius: 8
   },
-  content: {
-    padding: '30px 20px',
-    maxWidth: 800,
-    margin: '0 auto'
+
+  container: {
+    maxWidth: 900,
+    margin: 'auto',
+    padding: 30
   },
+
   hero: {
     display: 'flex',
-    gap: 20,
     alignItems: 'center',
-    background: '#18181f',
+    gap: 20,
+    background: '#111120',
     padding: 20,
     borderRadius: 12,
-    marginBottom: 24
+    marginBottom: 20
   },
-  avatarCircle: {
+
+  avatar: {
     width: 50,
     height: 50,
     borderRadius: '50%',
     background: '#6366f1',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 20,
-    fontWeight: 'bold',
-    flexShrink: 0
+    justifyContent: 'center'
   },
-  welcome: { margin: 0, fontSize: 22 },
-  welcomeSub: { margin: 0, color: '#aaa' },
+
   roleBadge: {
     marginLeft: 'auto',
-    padding: '6px 14px',
-    borderRadius: 20,
-    fontSize: 13,
-    flexShrink: 0
+    padding: '6px 12px',
+    borderRadius: 20
   },
-  mentorBadge: {
+
+  mentor: {
     background: 'rgba(99,102,241,0.2)',
     color: '#a5b4fc'
   },
-  studentBadge: {
+
+  student: {
     background: 'rgba(16,185,129,0.2)',
     color: '#6ee7b7'
   },
-  createBtn: {
-    padding: '10px 20px',
-    background: '#6366f1',
-    color: 'white',
+
+  primaryBtn: {
+    marginTop: 10,
+    padding: 12,
+    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
     border: 'none',
-    borderRadius: 8,
-    cursor: 'pointer',
-    marginTop: 10
+    borderRadius: 10,
+    color: 'white'
   },
-  copyBtn: {
-    padding: '8px 14px',
-    background: '#333',
-    color: 'white',
-    border: 'none',
+
+  smallBtn: {
+    padding: '6px 10px',
+    background: '#1a1a2e',
+    border: '1px solid #2a2a3e',
     borderRadius: 6,
-    cursor: 'pointer'
+    color: 'white'
   },
+
   input: {
     width: '100%',
-    padding: 10,
+    padding: 12,
     marginTop: 10,
-    background: '#18181f',
-    color: 'white',
-    border: '1px solid #333',
-    borderRadius: 6,
-    boxSizing: 'border-box'
+    background: '#1a1a2e',
+    border: '1px solid #2a2a3e',
+    borderRadius: 8,
+    color: 'white'
   },
-  inviteBanner: {
+
+  banner: {
     background: '#1e1b4b',
     padding: 16,
     borderRadius: 10,
-    marginBottom: 16,
+    marginBottom: 15,
     display: 'flex',
     gap: 10,
     alignItems: 'center'
   },
-  sessionCard: {
-    border: '1px solid #333',
-    padding: 16,
-    marginTop: 10,
-    borderRadius: 8,
-    background: '#18181f'
+
+  card: {
+    background: '#111120',
+    border: '1px solid #222',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10
   },
+
   badge: {
     padding: '3px 10px',
     borderRadius: 12,

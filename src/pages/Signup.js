@@ -19,51 +19,26 @@ export default function Signup() {
 
   function validate() {
     const errs = {}
-
     if (!form.full_name.trim()) errs.full_name = 'Name is required'
-
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
-      errs.email = 'Valid email required'
-
-    if (form.password.length < 6)
-      errs.password = 'Password must be at least 6 characters'
-
-    if (!form.role)
-      errs.role = 'Please select a role'
-
+    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) errs.email = 'Valid email required'
+    if (form.password.length < 6) errs.password = 'Min 6 characters'
+    if (!form.role) errs.role = 'Select role'
     return errs
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-
-    console.log("SIGNUP CLICKED ✅")
-
     setError('')
     const errs = validate()
-
-    if (Object.keys(errs).length) {
-      setFieldErrors(errs)
-      return
-    }
+    if (Object.keys(errs).length) return setFieldErrors(errs)
 
     setFieldErrors({})
 
     try {
-      // ✅ FIXED CALL (THIS WAS YOUR BUG)
-      await signup(
-        form.email,
-        form.password,
-        form.full_name,
-        form.role
-      )
-
-      console.log("SIGNUP SUCCESS ✅")
-
+      await signup(form.email, form.password, form.full_name, form.role)
       navigate('/dashboard')
-
     } catch (err) {
-      console.log('Signup error:', err)
+      console.log(err)
     }
   }
 
@@ -74,90 +49,77 @@ export default function Signup() {
 
   return (
     <div style={styles.page}>
+
+      <div style={styles.glowTopLeft} />
+      <div style={styles.glowBottomRight} />
+
       <div style={styles.card}>
 
         {/* LEFT PANEL */}
         <div style={styles.panel}>
-          <div style={styles.logo}>⌨</div>
-          <h1 style={styles.brand}>CodeCollab</h1>
-          <p style={styles.tagline}>
-            Real-time collaborative coding for mentors and students
-          </p>
+          <h2 style={styles.heading}>Join CodeCollab</h2>
+          <p style={styles.sub}>Start collaborating in real-time.</p>
         </div>
 
-        {/* RIGHT FORM */}
-        <div style={styles.form}>
-          <h2 style={styles.title}>Create account</h2>
+        {/* FORM */}
+        <div style={styles.formPanel}>
+          <div style={styles.formInner}>
+            <h2 style={styles.title}>Create account</h2>
 
-          {error && <div style={styles.errorBanner}>{error}</div>}
+            {error && <div style={styles.error}>{error}</div>}
 
-          <form onSubmit={handleSubmit} style={styles.fields}>
+            <form onSubmit={handleSubmit}>
 
-            <input
-              name="full_name"
-              placeholder="Full name"
-              value={form.full_name}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            {fieldErrors.full_name && <span style={styles.fieldError}>{fieldErrors.full_name}</span>}
+              <input name="full_name" placeholder="Full name"
+                value={form.full_name} onChange={handleChange}
+                style={styles.input} />
+              {fieldErrors.full_name && <span style={styles.err}>{fieldErrors.full_name}</span>}
 
-            <input
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            {fieldErrors.email && <span style={styles.fieldError}>{fieldErrors.email}</span>}
+              <input name="email" placeholder="Email"
+                value={form.email} onChange={handleChange}
+                style={styles.input} />
+              {fieldErrors.email && <span style={styles.err}>{fieldErrors.email}</span>}
 
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            {fieldErrors.password && <span style={styles.fieldError}>{fieldErrors.password}</span>}
+              <input type="password" name="password" placeholder="Password"
+                value={form.password} onChange={handleChange}
+                style={styles.input} />
+              {fieldErrors.password && <span style={styles.err}>{fieldErrors.password}</span>}
 
-            {/* ROLE */}
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                type="button"
-                onClick={() => setForm(f => ({ ...f, role: 'student' }))}
-                style={{
-                  ...styles.roleBtn,
-                  ...(form.role === 'student' ? styles.roleActive : {})
-                }}
-              >
-                🎓 Student
+              {/* ROLE */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="button"
+                  onClick={() => setForm(f => ({ ...f, role: 'student' }))}
+                  style={{
+                    ...styles.roleBtn,
+                    ...(form.role === 'student' && styles.roleActive)
+                  }}>
+                  🎓 Student
+                </button>
+
+                <button type="button"
+                  onClick={() => setForm(f => ({ ...f, role: 'mentor' }))}
+                  style={{
+                    ...styles.roleBtn,
+                    ...(form.role === 'mentor' && styles.roleActive)
+                  }}>
+                  👨‍🏫 Mentor
+                </button>
+              </div>
+              {fieldErrors.role && <span style={styles.err}>{fieldErrors.role}</span>}
+
+              <button type="submit" style={styles.btn}>
+                {loading ? 'Creating...' : 'Create account →'}
               </button>
 
-              <button
-                type="button"
-                onClick={() => setForm(f => ({ ...f, role: 'mentor' }))}
-                style={{
-                  ...styles.roleBtn,
-                  ...(form.role === 'mentor' ? styles.roleActive : {})
-                }}
-              >
-                👨‍🏫 Mentor
-              </button>
-            </div>
-            {fieldErrors.role && <span style={styles.fieldError}>{fieldErrors.role}</span>}
+            </form>
 
-            <button type="submit" disabled={loading} style={styles.submit}>
-              {loading ? 'Creating...' : 'Create account'}
-            </button>
+            <p style={styles.switch}>
+              Already have an account? <Link to="/login" style={styles.link}>Sign in</Link>
+            </p>
 
-          </form>
-
-          <p style={styles.switchText}>
-            Already have an account?{' '}
-            <Link to="/login" style={styles.link}>Sign in</Link>
-          </p>
+          </div>
         </div>
+
       </div>
     </div>
   )
@@ -169,58 +131,79 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    background: '#0f0f13'
+    background: '#0a0a12',
+    position: 'relative'
+  },
+  glowTopLeft: {
+    position: 'absolute', width: 500, height: 500,
+    background: 'radial-gradient(circle, rgba(99,102,241,0.15), transparent)',
+    top: -150, left: -150
+  },
+  glowBottomRight: {
+    position: 'absolute', width: 600, height: 600,
+    background: 'radial-gradient(circle, rgba(139,92,246,0.15), transparent)',
+    bottom: -150, right: -150
   },
   card: {
     display: 'flex',
-    width: 750
+    width: 820,
+    borderRadius: 20,
+    overflow: 'hidden',
+    boxShadow: '0 30px 80px rgba(0,0,0,0.6)'
   },
   panel: {
     width: '40%',
-    background: '#1e1b4b',
-    color: 'white',
-    padding: 30
-  },
-  form: {
-    width: '60%',
-    background: '#18181f',
-    padding: 30
-  },
-  title: { color: 'white' },
-  input: {
-    width: '100%',
-    padding: 10,
-    marginTop: 10,
-    background: '#0f0f16',
+    background: 'linear-gradient(160deg,#1e1b4b,#2d2a6e)',
+    padding: 40,
     color: 'white'
   },
-  fieldError: { color: 'red', fontSize: 12 },
+  heading: { fontSize: 26 },
+  sub: { color: '#c7d2fe' },
+
+  formPanel: {
+    width: '60%',
+    background: '#111120',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  formInner: { width: '80%' },
+  title: { color: 'white', marginBottom: 20 },
+
+  input: {
+    width: '100%',
+    padding: 12,
+    marginTop: 12,
+    background: '#1a1a2e',
+    border: '1px solid #2a2a3e',
+    color: 'white',
+    borderRadius: 10
+  },
+  err: { color: '#f87171', fontSize: 12 },
+
   roleBtn: {
     flex: 1,
     padding: 10,
-    background: '#0f0f16',
+    background: '#1a1a2e',
+    border: '1px solid #2a2a3e',
     color: 'white',
-    border: '1px solid #333'
+    borderRadius: 8
   },
   roleActive: {
-    border: '1px solid #6366f1'
+    border: '1px solid #6366f1',
+    background: 'rgba(99,102,241,0.2)'
   },
-  submit: {
-    marginTop: 15,
+
+  btn: {
+    marginTop: 20,
     padding: 12,
-    background: '#6366f1',
+    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+    border: 'none',
     color: 'white',
-    border: 'none'
+    borderRadius: 10
   },
-  errorBanner: {
-    color: 'red',
-    marginBottom: 10
-  },
-  switchText: {
-    marginTop: 15,
-    color: '#aaa'
-  },
-  link: {
-    color: '#6366f1'
-  }
+
+  switch: { marginTop: 20, color: '#aaa' },
+  link: { color: '#818cf8' },
+  error: { color: '#f87171' }
 }
