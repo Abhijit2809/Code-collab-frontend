@@ -20,23 +20,24 @@ export default function Dashboard() {
 
   const isMentor = user?.role === 'mentor'
 
+  // ✅ FIXED: getMySessions added to deps
   const loadSessions = useCallback(async () => {
     if (!user) return
     try {
       const data = await getMySessions()
       setSessions(data || [])
     } catch (error) {
-      // ✅ Don't redirect on error — just show empty
       console.log('Session fetch error:', error.message)
       setSessions([])
     }
-  }, [user])
+  }, [user, getMySessions])
 
+  // ✅ FIXED: loadSessions added to deps
   useEffect(() => {
     if (user && isMentor) {
       loadSessions()
     }
-  }, [user, isMentor])
+  }, [user, isMentor, loadSessions])
 
   function handleLogout() {
     logout()
@@ -126,13 +127,18 @@ export default function Dashboard() {
             {newSession && (
               <div style={styles.inviteBanner}>
                 <div>
-                  <p>Session created!</p>
-                  <p><strong>Code: {newSession.invite_code}</strong></p>
+                  <p style={{ margin: 0 }}>Session created!</p>
+                  <p style={{ margin: 0 }}>
+                    <strong>Code: {newSession.invite_code}</strong>
+                  </p>
                 </div>
-                <button onClick={copyLink}>
+                <button onClick={copyLink} style={styles.copyBtn}>
                   {copied ? '✓ Copied' : 'Copy Code'}
                 </button>
-                <button onClick={() => navigate(`/session/${newSession.id}`)}>
+                <button
+                  onClick={() => navigate(`/session/${newSession.id}`)}
+                  style={styles.copyBtn}
+                >
                   Open →
                 </button>
               </div>
@@ -172,17 +178,23 @@ export default function Dashboard() {
 
             <h2 style={{ marginTop: 30 }}>Your Sessions</h2>
             {sessions.length === 0 ? (
-              <p style={{ color: '#aaa' }}>No sessions yet. Create your first one above.</p>
+              <p style={{ color: '#aaa' }}>
+                No sessions yet. Create your first one above.
+              </p>
             ) : (
               sessions.map(s => (
                 <div key={s.id} style={styles.sessionCard}>
-                  <p style={{ fontWeight: 'bold' }}>{s.title}</p>
-                  {s.description && <p style={{ color: '#aaa' }}>{s.description}</p>}
-                  <p style={{ color: '#888' }}>Code: {s.invite_code}</p>
+                  <p style={{ fontWeight: 'bold', margin: 0 }}>{s.title}</p>
+                  {s.description && (
+                    <p style={{ color: '#aaa', margin: '4px 0' }}>{s.description}</p>
+                  )}
+                  <p style={{ color: '#888', margin: '4px 0' }}>
+                    Code: {s.invite_code}
+                  </p>
                   <span style={statusStyle(s.status)}>{s.status}</span>
                   <button
                     onClick={() => navigate(`/session/${s.id}`)}
-                    style={{ marginLeft: 10, padding: '4px 12px' }}
+                    style={{ marginLeft: 10, padding: '4px 12px', cursor: 'pointer' }}
                   >
                     Open →
                   </button>
@@ -215,23 +227,122 @@ export default function Dashboard() {
 }
 
 const styles = {
-  page: { minHeight: '100vh', background: '#0f0f13', color: '#fff' },
-  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #222' },
-  topbarLeft: { display: 'flex', gap: 10, alignItems: 'center' },
+  page: {
+    minHeight: '100vh',
+    background: '#0f0f13',
+    color: '#fff'
+  },
+  topbar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 20px',
+    borderBottom: '1px solid #222'
+  },
+  topbarLeft: {
+    display: 'flex',
+    gap: 10,
+    alignItems: 'center'
+  },
   logo: { fontSize: 20 },
   brandName: { fontWeight: 'bold', fontSize: 18 },
-  logoutBtn: { padding: '8px 16px', background: '#333', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' },
-  content: { padding: '30px 20px', maxWidth: 800, margin: '0 auto' },
-  hero: { display: 'flex', gap: 20, alignItems: 'center', background: '#18181f', padding: 20, borderRadius: 12, marginBottom: 24 },
-  avatarCircle: { width: 50, height: 50, borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 'bold' },
+  logoutBtn: {
+    padding: '8px 16px',
+    background: '#333',
+    color: 'white',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer'
+  },
+  content: {
+    padding: '30px 20px',
+    maxWidth: 800,
+    margin: '0 auto'
+  },
+  hero: {
+    display: 'flex',
+    gap: 20,
+    alignItems: 'center',
+    background: '#18181f',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 24
+  },
+  avatarCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: '50%',
+    background: '#6366f1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+    flexShrink: 0
+  },
   welcome: { margin: 0, fontSize: 22 },
   welcomeSub: { margin: 0, color: '#aaa' },
-  roleBadge: { marginLeft: 'auto', padding: '6px 14px', borderRadius: 20, fontSize: 13 },
-  mentorBadge: { background: 'rgba(99,102,241,0.2)', color: '#a5b4fc' },
-  studentBadge: { background: 'rgba(16,185,129,0.2)', color: '#6ee7b7' },
-  createBtn: { padding: '10px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', marginTop: 10 },
-  input: { width: '100%', padding: 10, marginTop: 10, background: '#18181f', color: 'white', border: '1px solid #333', borderRadius: 6 },
-  inviteBanner: { background: '#1e1b4b', padding: 16, borderRadius: 10, marginBottom: 16, display: 'flex', gap: 10, alignItems: 'center' },
-  sessionCard: { border: '1px solid #333', padding: 16, marginTop: 10, borderRadius: 8, background: '#18181f' },
-  badge: { padding: '3px 10px', borderRadius: 12, fontSize: 12 }
+  roleBadge: {
+    marginLeft: 'auto',
+    padding: '6px 14px',
+    borderRadius: 20,
+    fontSize: 13,
+    flexShrink: 0
+  },
+  mentorBadge: {
+    background: 'rgba(99,102,241,0.2)',
+    color: '#a5b4fc'
+  },
+  studentBadge: {
+    background: 'rgba(16,185,129,0.2)',
+    color: '#6ee7b7'
+  },
+  createBtn: {
+    padding: '10px 20px',
+    background: '#6366f1',
+    color: 'white',
+    border: 'none',
+    borderRadius: 8,
+    cursor: 'pointer',
+    marginTop: 10
+  },
+  copyBtn: {
+    padding: '8px 14px',
+    background: '#333',
+    color: 'white',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer'
+  },
+  input: {
+    width: '100%',
+    padding: 10,
+    marginTop: 10,
+    background: '#18181f',
+    color: 'white',
+    border: '1px solid #333',
+    borderRadius: 6,
+    boxSizing: 'border-box'
+  },
+  inviteBanner: {
+    background: '#1e1b4b',
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 16,
+    display: 'flex',
+    gap: 10,
+    alignItems: 'center'
+  },
+  sessionCard: {
+    border: '1px solid #333',
+    padding: 16,
+    marginTop: 10,
+    borderRadius: 8,
+    background: '#18181f'
+  },
+  badge: {
+    padding: '3px 10px',
+    borderRadius: 12,
+    fontSize: 12
+  }
 }
