@@ -1,28 +1,31 @@
+// src/utils/api.js
 import axios from 'axios'
+import { supabase } from './supabase'
 
 const api = axios.create({
   baseURL: 'https://code-collab-backend-427n.onrender.com/api'
 })
 
-// ✅ ATTACH TOKEN AUTOMATICALLY
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token')
+// ✅ Get token from Supabase session (not localStorage)
+api.interceptors.request.use(async (config) => {
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`
   }
 
   return config
 })
 
-// ✅ HANDLE TOKEN EXPIRE
+// ✅ Handle 401 — but only redirect if truly no session
 api.interceptors.response.use(
   res => res,
-  err => {
+  async (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(err)
   }
