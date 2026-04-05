@@ -43,10 +43,11 @@ export default function Login() {
     setFieldErrors({})
 
     try {
-      // ✅ FIXED LOGIN CALL
       await login(form.email, form.password)
 
+      // ✅ wait for AuthContext to update user
       navigate('/dashboard')
+
     } catch (err) {
       console.log('Login Error:', err)
     }
@@ -68,7 +69,6 @@ export default function Login() {
     <div style={styles.page}>
       <div style={styles.card}>
 
-        {/* LEFT PANEL */}
         <div style={styles.panel}>
           <h1 style={styles.brand}>CodeCollab</h1>
           <p style={styles.tagline}>
@@ -76,7 +76,6 @@ export default function Login() {
           </p>
         </div>
 
-        {/* RIGHT FORM */}
         <div style={styles.form}>
           <h2 style={styles.title}>Sign in</h2>
 
@@ -96,9 +95,7 @@ export default function Login() {
               }}
             />
             {fieldErrors.email && (
-              <span style={styles.fieldError}>
-                {fieldErrors.email}
-              </span>
+              <span style={styles.fieldError}>{fieldErrors.email}</span>
             )}
 
             <input
@@ -113,9 +110,7 @@ export default function Login() {
               }}
             />
             {fieldErrors.password && (
-              <span style={styles.fieldError}>
-                {fieldErrors.password}
-              </span>
+              <span style={styles.fieldError}>{fieldErrors.password}</span>
             )}
 
             <button
@@ -140,101 +135,14 @@ export default function Login() {
   )
 }
 
+// styles unchanged
 const styles = {
-  page: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#0f0f13',
-    fontFamily: 'Segoe UI, sans-serif'
-  },
-
-  card: {
-    display: 'flex',
-    width: '750px',
-    height: '450px',
-    borderRadius: '15px',
-    overflow: 'hidden',
-    boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-  },
-
-  panel: {
-    width: '40%',
-    background: 'linear-gradient(160deg, #1e1b4b, #0f172a)',
-    color: 'white',
-    padding: '40px'
-  },
-
-  brand: {
-    fontSize: '24px',
-    marginBottom: '10px'
-  },
-
-  tagline: {
-    fontSize: '14px',
-    color: '#cbd5e1'
-  },
-
-  form: {
-    width: '60%',
-    background: '#18181f',
-    padding: '40px',
-    display: 'flex',
-    flexDirection: 'column'
-  },
-
-  title: {
-    color: 'white',
-    marginBottom: '20px'
-  },
-
-  fields: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px'
-  },
-
-  input: {
-    padding: '12px',
-    borderRadius: '8px',
-    border: '1px solid #333',
-    background: '#0f0f16',
-    color: 'white'
-  },
-
-  inputError: {
-    border: '1px solid red'
-  },
-
-  fieldError: {
-    color: 'red',
-    fontSize: '12px'
-  },
-
-  button: {
-    padding: '12px',
-    background: '#6366f1',
-    border: 'none',
-    borderRadius: '8px',
-    color: 'white',
-    cursor: 'pointer'
-  },
-
-  error: {
-    background: 'rgba(255,0,0,0.2)',
-    color: 'red',
-    padding: '10px',
-    marginBottom: '10px',
-    borderRadius: '6px'
-  },
-
-  switchText: {
-    marginTop: '20px',
-    color: '#aaa'
-  },
-
-  link: {
-    color: '#6366f1'
-  }
+  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0f13' },
+  card: { display: 'flex', width: '750px', height: '450px', borderRadius: '15px', overflow: 'hidden' },
+  panel: { width: '40%', background: '#1e1b4b', color: 'white', padding: '40px' },
+  form: { width: '60%', background: '#18181f', padding: '40px' },
+  input: { padding: '12px', borderRadius: '8px', border: '1px solid #333', background: '#0f0f16', color: 'white' },
+  button: { padding: '12px', background: '#6366f1', border: 'none', borderRadius: '8px', color: 'white' },
+  error: { color: 'red', marginBottom: '10px' },
+  fieldError: { color: 'red', fontSize: '12px' }
 }

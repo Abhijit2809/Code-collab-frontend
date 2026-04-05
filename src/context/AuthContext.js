@@ -1,3 +1,5 @@
+// src/context/AuthContext.js
+
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../utils/supabase'
 
@@ -5,73 +7,131 @@ const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true) // important
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // ✅ CORRECT AUTH STATE HANDLING
   useEffect(() => {
-    // Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+    const loadUser = async (session) => {
+      if (!session) {
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
+      try {
+        const currentUser = session.user
+
+        // Fetch profile via backend (avoids RLS issues)
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}/api/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`
+            }
+          }
+        )
+
+        if (!response.ok) {
+          console.log('Profile fetch failed:', response.status)
+          setUser(null)
+        } else {
+          const data = await response.json()
+          setUser({
+            ...currentUser,
+            role: data.user.role,
+            full_name: data.user.full_name
+          })
+        }
+
+      } catch (err) {
+        console.log('loadUser error:', err)
+        setUser(null)
+      }
+
       setLoading(false)
+    }
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      loadUser(session)
     })
 
-    // Listen to auth changes
+    // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(session?.user ?? null)
+        setLoading(true)
+        loadUser(session)
       }
     )
 
-    return () => listener.subscription.unsubscribe()
+    return () => {
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
-  // ✅ LOGIN
+  // ✅ LOGIN — uses backend
   async function login(email, password) {
-    setLoading(true)
     setError('')
+    setLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Step 1: Authenticate via backend
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        }
+      )
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Login failed')
+
+      // Step 2: Create Supabase session on frontend
+      const { error: sessionError } = await supabase.auth.signInWithPassword({
         email,
         password
       })
 
-      if (error) throw error
-
-      const user = data.user
-
-      // ✅ WAIT for session to be ready
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
-
-      if (!session) {
-        throw new Error('Session not established')
-      }
-
-      // 🔥 FETCH PROFILE
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (profileError) throw profileError
-
-      // ✅ Merge user + profile
-      const fullUser = {
-        ...user,
-        role: profile.role,
-        full_name: profile.full_name
-      }
-
-      setUser(fullUser)
-
-      return fullUser
+      if (sessionError) throw sessionError
 
     } catch (err) {
-      setError(err.message || 'Login failed')
+      setError(err.message)
+      setLoading(false)
+      throw err
+    }
+  }
+
+  // ✅ SIGNUP — uses backend
+  async function signup(email, password, full_name, role) {
+    setError('')
+    setLoading(true)
+
+    try {
+      // Step 1: Backend creates user with admin key (bypasses RLS)
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/auth/signup`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, full_name, role })
+        }
+      )
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Signup failed')
+
+      // Step 2: Sign in to create session
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (loginError) throw loginError
+
+    } catch (err) {
+      setError(err.message)
       throw err
     } finally {
       setLoading(false)
@@ -85,7 +145,15 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ login, logout, user, loading, error, setError }}>
+    <AuthContext.Provider value={{
+      login,
+      signup,
+      logout,
+      user,
+      loading,
+      error,
+      setError
+    }}>
       {children}
     </AuthContext.Provider>
   )

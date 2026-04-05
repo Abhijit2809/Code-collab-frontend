@@ -1,3 +1,5 @@
+// src/pages/Signup.js
+
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -5,28 +7,64 @@ import { useAuth } from '../context/AuthContext'
 export default function Signup() {
   const { signup, loading, error, setError } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ full_name: '', email: '', password: '', role: '' })
+
+  const [form, setForm] = useState({
+    full_name: '',
+    email: '',
+    password: '',
+    role: ''
+  })
+
   const [fieldErrors, setFieldErrors] = useState({})
 
   function validate() {
     const errs = {}
+
     if (!form.full_name.trim()) errs.full_name = 'Name is required'
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) errs.email = 'Valid email required'
-    if (form.password.length < 6) errs.password = 'Password must be at least 6 characters'
-    if (!form.role) errs.role = 'Please select a role'
+
+    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
+      errs.email = 'Valid email required'
+
+    if (form.password.length < 6)
+      errs.password = 'Password must be at least 6 characters'
+
+    if (!form.role)
+      errs.role = 'Please select a role'
+
     return errs
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
+
+    console.log("SIGNUP CLICKED ✅")
+
     setError('')
     const errs = validate()
-    if (Object.keys(errs).length) return setFieldErrors(errs)
+
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs)
+      return
+    }
+
     setFieldErrors({})
+
     try {
-      await signup(form)
+      // ✅ FIXED CALL (THIS WAS YOUR BUG)
+      await signup(
+        form.email,
+        form.password,
+        form.full_name,
+        form.role
+      )
+
+      console.log("SIGNUP SUCCESS ✅")
+
       navigate('/dashboard')
-    } catch (_) {}
+
+    } catch (err) {
+      console.log('Signup error:', err)
+    }
   }
 
   function handleChange(e) {
@@ -37,84 +75,82 @@ export default function Signup() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        {/* Left panel */}
+
+        {/* LEFT PANEL */}
         <div style={styles.panel}>
           <div style={styles.logo}>⌨</div>
           <h1 style={styles.brand}>CodeCollab</h1>
-          <p style={styles.tagline}>Real-time collaborative coding for mentors and students</p>
-          <div style={styles.features}>
-            {['Live code editing', 'Video & audio calls', 'Role-based access', 'Instant feedback'].map(f => (
-              <div key={f} style={styles.feature}>
-                <span style={styles.featureDot} />
-                <span>{f}</span>
-              </div>
-            ))}
-          </div>
+          <p style={styles.tagline}>
+            Real-time collaborative coding for mentors and students
+          </p>
         </div>
 
-        {/* Right form */}
+        {/* RIGHT FORM */}
         <div style={styles.form}>
-          <div style={styles.formHeader}>
-            <h2 style={styles.title}>Create account</h2>
-            <p style={styles.subtitle}>Join thousands of learners and mentors</p>
-          </div>
+          <h2 style={styles.title}>Create account</h2>
 
           {error && <div style={styles.errorBanner}>{error}</div>}
 
-          <form onSubmit={handleSubmit} style={styles.fields} noValidate>
-            <Field
-              label="Full name"
+          <form onSubmit={handleSubmit} style={styles.fields}>
+
+            <input
               name="full_name"
+              placeholder="Full name"
               value={form.full_name}
               onChange={handleChange}
-              placeholder="Jane Smith"
-              error={fieldErrors.full_name}
+              style={styles.input}
             />
-            <Field
-              label="Email address"
+            {fieldErrors.full_name && <span style={styles.fieldError}>{fieldErrors.full_name}</span>}
+
+            <input
               name="email"
-              type="email"
+              placeholder="Email"
               value={form.email}
               onChange={handleChange}
-              placeholder="jane@example.com"
-              error={fieldErrors.email}
+              style={styles.input}
             />
-            <Field
-              label="Password"
+            {fieldErrors.email && <span style={styles.fieldError}>{fieldErrors.email}</span>}
+
+            <input
               name="password"
               type="password"
+              placeholder="Password"
               value={form.password}
               onChange={handleChange}
-              placeholder="Min. 6 characters"
-              error={fieldErrors.password}
+              style={styles.input}
             />
+            {fieldErrors.password && <span style={styles.fieldError}>{fieldErrors.password}</span>}
 
-            {/* Role selector */}
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>I am a</label>
-              <div style={styles.roleRow}>
-                {['student', 'mentor'].map(r => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => { setForm(f => ({ ...f, role: r })); setFieldErrors(fe => ({ ...fe, role: '' })) }}
-                    style={{
-                      ...styles.roleBtn,
-                      ...(form.role === r ? styles.roleBtnActive : {})
-                    }}
-                  >
-                    <span style={styles.roleIcon}>{r === 'student' ? '🎓' : '👨‍🏫'}</span>
-                    <span style={styles.roleLabel}>{r.charAt(0).toUpperCase() + r.slice(1)}</span>
-                    <span style={styles.roleDesc}>{r === 'student' ? 'I want to learn' : 'I want to teach'}</span>
-                  </button>
-                ))}
-              </div>
-              {fieldErrors.role && <span style={styles.fieldError}>{fieldErrors.role}</span>}
+            {/* ROLE */}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, role: 'student' }))}
+                style={{
+                  ...styles.roleBtn,
+                  ...(form.role === 'student' ? styles.roleActive : {})
+                }}
+              >
+                🎓 Student
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, role: 'mentor' }))}
+                style={{
+                  ...styles.roleBtn,
+                  ...(form.role === 'mentor' ? styles.roleActive : {})
+                }}
+              >
+                👨‍🏫 Mentor
+              </button>
             </div>
+            {fieldErrors.role && <span style={styles.fieldError}>{fieldErrors.role}</span>}
 
-            <button type="submit" style={styles.submit} disabled={loading}>
-              {loading ? <span style={styles.spinner} /> : 'Create account'}
+            <button type="submit" disabled={loading} style={styles.submit}>
+              {loading ? 'Creating...' : 'Create account'}
             </button>
+
           </form>
 
           <p style={styles.switchText}>
@@ -127,145 +163,64 @@ export default function Signup() {
   )
 }
 
-function Field({ label, name, type = 'text', value, onChange, placeholder, error }) {
-  const [focused, setFocused] = useState(false)
-  return (
-    <div style={styles.fieldGroup}>
-      <label style={styles.label}>{label}</label>
-      <input
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={{
-          ...styles.input,
-          ...(focused ? styles.inputFocused : {}),
-          ...(error ? styles.inputError : {})
-        }}
-      />
-      {error && <span style={styles.fieldError}>{error}</span>}
-    </div>
-  )
-}
-
 const styles = {
   page: {
     minHeight: '100vh',
     display: 'flex',
-    alignItems: 'center',
     justifyContent: 'center',
-    background: '#0f0f13',
-    padding: '24px',
-    fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+    alignItems: 'center',
+    background: '#0f0f13'
   },
   card: {
     display: 'flex',
-    width: '100%',
-    maxWidth: 880,
-    minHeight: 580,
-    borderRadius: 20,
-    overflow: 'hidden',
-    boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
+    width: 750
   },
   panel: {
-    flex: '0 0 300px',
-    background: 'linear-gradient(160deg, #1e1b4b 0%, #0f172a 100%)',
-    padding: '48px 36px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    gap: 16,
-    borderRight: '1px solid rgba(255,255,255,0.06)',
+    width: '40%',
+    background: '#1e1b4b',
+    color: 'white',
+    padding: 30
   },
-  logo: { fontSize: 36 },
-  brand: { color: '#e2e8f0', fontSize: 24, fontWeight: 700, margin: 0 },
-  tagline: { color: '#94a3b8', fontSize: 14, lineHeight: 1.6, margin: 0 },
-  features: { display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 },
-  feature: { display: 'flex', alignItems: 'center', gap: 10, color: '#94a3b8', fontSize: 14 },
-  featureDot: { width: 6, height: 6, borderRadius: '50%', background: '#6366f1', flexShrink: 0 },
   form: {
-    flex: 1,
+    width: '60%',
     background: '#18181f',
-    padding: '40px 44px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
+    padding: 30
   },
-  formHeader: { marginBottom: 28 },
-  title: { color: '#f1f5f9', fontSize: 24, fontWeight: 700, margin: '0 0 6px' },
-  subtitle: { color: '#64748b', fontSize: 14, margin: 0 },
-  errorBanner: {
-    background: 'rgba(239,68,68,0.12)',
-    border: '1px solid rgba(239,68,68,0.3)',
-    color: '#f87171',
-    padding: '10px 14px',
-    borderRadius: 8,
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  fields: { display: 'flex', flexDirection: 'column', gap: 18 },
-  fieldGroup: { display: 'flex', flexDirection: 'column', gap: 6 },
-  label: { color: '#94a3b8', fontSize: 13, fontWeight: 500 },
+  title: { color: 'white' },
   input: {
+    width: '100%',
+    padding: 10,
+    marginTop: 10,
     background: '#0f0f16',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: 10,
-    padding: '11px 14px',
-    color: '#f1f5f9',
-    fontSize: 14,
-    outline: 'none',
-    transition: 'border-color 0.15s',
+    color: 'white'
   },
-  inputFocused: { borderColor: '#6366f1' },
-  inputError: { borderColor: '#ef4444' },
-  fieldError: { color: '#f87171', fontSize: 12 },
-  roleRow: { display: 'flex', gap: 12 },
+  fieldError: { color: 'red', fontSize: 12 },
   roleBtn: {
     flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 4,
-    padding: '14px 12px',
+    padding: 10,
     background: '#0f0f16',
-    border: '1.5px solid rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    cursor: 'pointer',
-    transition: 'all 0.15s',
+    color: 'white',
+    border: '1px solid #333'
   },
-  roleBtnActive: {
-    borderColor: '#6366f1',
-    background: 'rgba(99,102,241,0.12)',
+  roleActive: {
+    border: '1px solid #6366f1'
   },
-  roleIcon: { fontSize: 22 },
-  roleLabel: { color: '#e2e8f0', fontSize: 14, fontWeight: 600 },
-  roleDesc: { color: '#64748b', fontSize: 12 },
   submit: {
+    marginTop: 15,
+    padding: 12,
     background: '#6366f1',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 10,
-    padding: '13px',
-    fontSize: 15,
-    fontWeight: 600,
-    cursor: 'pointer',
-    marginTop: 4,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 46,
-    transition: 'opacity 0.15s',
+    color: 'white',
+    border: 'none'
   },
-  spinner: {
-    width: 18, height: 18,
-    border: '2px solid rgba(255,255,255,0.3)',
-    borderTopColor: '#fff',
-    borderRadius: '50%',
-    animation: 'spin 0.7s linear infinite',
+  errorBanner: {
+    color: 'red',
+    marginBottom: 10
   },
-  switchText: { color: '#64748b', fontSize: 14, marginTop: 20, textAlign: 'center' },
-  link: { color: '#818cf8', textDecoration: 'none', fontWeight: 600 },
+  switchText: {
+    marginTop: 15,
+    color: '#aaa'
+  },
+  link: {
+    color: '#6366f1'
+  }
 }

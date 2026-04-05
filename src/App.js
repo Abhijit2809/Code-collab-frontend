@@ -2,7 +2,7 @@
 
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { ProtectedRoute } from './components/ProtectedRoute'
+import ProtectedRoute  from './components/ProtectedRoute'
 import { SocketProvider } from './context/SocketContext'
 
 import Signup from './pages/Signup'
